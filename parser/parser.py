@@ -19,6 +19,7 @@ class Node(object):
         self.name = name
         self.left = None
         self.right = None
+        self.info = None
 
     def add(self, node):
        #No detection for adding one than two nodes
@@ -30,6 +31,9 @@ class Node(object):
           print("Attempt to add " + node.name + " to " + self.name+" when left and right nodes are full")
           print("Current Left: "+self.left.name+" Current Right: "+self.right.name)
           exit()
+
+    def add_info(self, infoNode):
+      self.info = infoNode
 
     def get_left(self):
       return self.left
@@ -120,16 +124,81 @@ def declaration(parent_node):
     return True
   return False
 
-def assignment_statement(parent_node):
-  new_node = Node("assignment_statement")
-  if (match("a") or match("b")) and match(":=") and match("<number>"):
-    num_value = matchStack.pop()
-    matchStack.pop() # assignment operator
-    var_name = matchStack.pop()
-    new_node.add(Node(var_name))
-    new_node.add(Node(num_value))
+# A little trouble shooting out how "primes" work in relation to left-recursion elimination.
+# This is something to keep an eye on
+# This is a pretty decent webpage on the subject https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/Syntax.html/node8.html
+# arith_op = arithop + relation
+# arith_op = arithop - relation
+# arith_op = relation
+
+# E = E+T | E
+# T = id
+
+# E = T and Eprime
+# Eprime = + and T and Eprime | nothing
+ 
+# arith_op = match(relation) and arith_op_prime
+# arith_op_prime = ((match("+") or match("-")) and relation and arith_op_prime) or nothing
+#5 + 2 - 1 + 9
+def arith_op(parent_node):
+  new_node = Node("arith_op")
+  if relation(new_node) and arith_op_prime(new_node):
     parent_node.add(new_node)
     return True
+  return False
+
+def arith_op_prime(parent_node):
+  new_node = Node("Factor")
+  if (match("+") or match("-")) and relation(new_node) and arith_op_prime(new_node):
+    parent_node.name = matchStack.pop()
+    parent_node.add(new_node)
+    return True
+  else:
+    return True
+
+def relation(parent_node):
+  new_node = Node("")
+  if match("<number>"):
+    new_node.name=matchStack.pop()
+    parent_node.add(new_node)
+    return True
+  return True
+
+
+# Expression is another example of needing a "prime"
+def expression(parent_node):
+  new_node = Node("expression")
+  if match("not"):
+    print("This should be fixed")
+    exit()
+  if arith_op(new_node) and expression_prime(new_node):
+    parent_node.add(new_node)
+    return True
+  return False
+
+def expression_prime(parent_node):
+  new_node = Node("")
+  if match("&") and expression(new_node):
+    new_node.name = "& (and)"
+    parent_node.add(new_node)
+    return True
+  elif match("|") and expression(new_node):
+    new_node.name = "| (or)"
+    parent_node.add(new_node)
+  else:
+    return True
+    
+
+def assignment_statement(parent_node):
+  new_node = Node("assignment_statement")
+  #if (match("a") or match("b")) and match(":=") and match("<number>"):
+  print("Trying out expression, this might cause errors")
+  if (match("a") or match("b")) and match(":="):
+    matchStack.pop()
+    new_node.add(Node(matchStack.pop()+" ="))
+    if expression(new_node):
+      parent_node.add(new_node)
+      return True
   return False
 
 def if_statement(parent_node):
