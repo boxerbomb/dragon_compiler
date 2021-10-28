@@ -4,10 +4,13 @@ src_file = open("source.txt",'r')
 
 lookahead="hhhh"
 
+
+
+
 ###############################################################################################
 ###############################################################################################
-##                      ADD STATEMENT_LIST and DECLARATION_LIST as symbols
-##                            maybe "symbols" is not the right word
+##                   I believe that there should be some sort of "token iterator"
+##      This depends if a potential first match could fail halfway through matches
 ###############################################################################################
 ###############################################################################################
 
@@ -49,14 +52,19 @@ def printPreorder(root):
     printPreorder(root.left)
     printPreorder(root.right)
 
+
+# Trying to not use as many classes as I am unsure of what language I will use
+matchStack = []
 def match(token_text):
   global lookahead
   if lookahead==token_text:
+    matchStack.append(lookahead)
     lookahead=get_token()
     return True
   else:
     if token_text=="<number>" and lookahead.isnumeric():
       print("Returning True for a number")
+      matchStack.append(lookahead)
       lookahead=get_token()
       return True
     print("No match for", lookahead, token_text)
@@ -79,6 +87,12 @@ def program_header(parent_node):
 def variable_declaration(parent_node):
   new_node = Node("Variable_Declaration")
   if match("variable") and (match("a") or match("b")) and match(":") and (match("integer") or match("bool")):
+    temp_type = matchStack.pop()
+    matchStack.pop() # un-needed colon
+    tempname=matchStack.pop()
+    matchStack.pop() # just to clear the stack
+    new_node.add(Node(tempname))
+    new_node.add(Node(temp_type))
     parent_node.add(new_node)
     return True
   return False
@@ -109,6 +123,11 @@ def declaration(parent_node):
 def assignment_statement(parent_node):
   new_node = Node("assignment_statement")
   if (match("a") or match("b")) and match(":=") and match("<number>"):
+    num_value = matchStack.pop()
+    matchStack.pop() # assignment operator
+    var_name = matchStack.pop()
+    new_node.add(Node(var_name))
+    new_node.add(Node(num_value))
     parent_node.add(new_node)
     return True
   return False
