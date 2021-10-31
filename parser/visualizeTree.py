@@ -6,8 +6,8 @@ class ParseTreeVisualizer(object):
         self.ncount = 1
         self.dot_header = [textwrap.dedent("""\
         digraph astgraph {
-          node [shape=none, fontsize=12, fontname="Courier", height=.1];
-          ranksep=.3;
+          node [shape=box, fontsize=12, fontname="Courier", height=.1];
+          ranksep=.6;
           edge [arrowsize=.5]
         """)]
         self.dot_body = []
@@ -31,7 +31,7 @@ class ParseTreeVisualizer(object):
                   self.dot_body.append(s)
                   child_node._num = ncount
                   ncount += 1
-                  s = '  node{} -> node{}\n'.format(node._num, child_node._num)
+                  s = '  node{} -> node{} [ label="{}" ];\n'.format(node._num, child_node._num,"label text")
                   self.dot_body.append(s)
                   queue.append(child_node)
 
