@@ -1,0 +1,7 @@
+program test_program is
+    variable a : integer;
+    variable tmp : bool;
+begin
+    a := 3;
+    b := 4; 
+end program .
