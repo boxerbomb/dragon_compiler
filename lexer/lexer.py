@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from enum import Enum
 
-one_dig_seperators=[',',';','(',')','[',']','+','-','/','*']
+one_dig_seperators=[',',';','(',')','[',']','+','-','/','*',':','.']
 two_dig_seperators=[":=","<=","<=","==","!=","//"]
 
 tokens = []
@@ -10,18 +11,25 @@ filename = "../test0.src"
 
 source_file = open(filename, 'r')
 
+token_types = Enum('token_types','t_INVALID, t_PROGRAM t_IS t_VARIABLE t_BEGIN t_END t_DOT t_LINE_COMMENT\
+ t_INTEGER t_BOOL t_FLOAT t_STRING t_CHAR i_IF t_THEN t_ELSE t_FOR t_WHILE t_SWITCH t_CASE t_MULT_OP\
+ t_DIVIDE_OP t_AND t_ADD_OP t_SUBTRACT_OP t_GLOBAL t_OR t_ASSIGN t_EQUALS t_NOT_EQUAL t_LESS_THAN t_LESS_THAN_OR_EQUAL t_GREATER_THAN\
+  t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET')
+
 @dataclass
 class token:
-    type: str
+    type: token_types
     value: str
 
 
-reserved_word = ["PROGRAM","IS","VARIABLE","BEGIN","END",".","//"]
-reserved_types =["INTEGER","BOOL"]
-mult_op = ["*","/","DIV","MOD","AND"]
-add_op = ["+","-"."OR"]
-assign_op = [":="]
-re_op=["=","!=","<","<=",">=",">"]
+# Enum used for types to prevent passing around strings.
+# reserved_word = ["PROGRAM","IS","VARIABLE","BEGIN","END",".","//"]
+# reserved_types =["INTEGER","BOOL","FLOAT","STRING","CHAR","ID"]
+# control_words = ["IF","THEN","ELSE","FOR","WHILE","SWITCH","CASE"]
+# mult_op = ["*","/","DIV","MOD","AND"]
+# add_op = ["+","-","OR"]
+# assign_op = [":="]
+# re_op=["=","!=","<","<=",">=",">"]
 # id = starts with letter than letters and or digitis
 # digit = 0-9
 # letter = az and A-Z
@@ -30,9 +38,95 @@ re_op=["=","!=","<","<=",">=",">"]
 # digits = digit and any number of other digits
 # opetional_fraction = .plus digits
 
-def identify_token(token_text):
-    
-    return token(token_text,"12")
+def identify_token(token_text_lower):
+    token_text = token_text_lower.upper()
+
+    # Start with a token of Invalid type and hopefully identify before sending
+    return_token = token(token_types.t_INVALID,token_text);
+
+    if token_text=="PROGRAM":
+        return_token.type = token_types.t_PROGRAM
+    elif token_text=="IS":
+        return_token.type = token_types.t_IS
+    elif token_text=="VARIABLE":
+        return_token.type = token_types.t_VARIABLE
+    elif token_text=="BEGIN":
+        return_token.type = token_types.t_BEGIN
+    elif token_text=="END":
+        return_token.type = token_types.t_END
+    elif token_text==".":
+        return_token.type = token_types.t_DOT       
+    elif token_text=="//":
+        return_token.type = token_types.t_LINE_COMMENT
+    elif token_text=="INTEGER":
+        return_token.type = token_types.t_INTEGER
+    elif token_text=="BOOL":
+        return_token.type = token_types.t_BOOL
+    elif token_text=="FLOAT":
+        return_token.type = token_types.t_FLOAT
+    elif token_text=="STRING":
+        return_token.type = token_types.t_STRING
+    elif token_text=="CHAR":
+        return_token.type = token_types.t_CHAR
+    elif token_text=="IF":
+        return_token.type = token_types.t_IF
+    elif token_text=="THEN":
+        return_token.type = token_types.t_THEN
+    elif token_text=="ELSE":
+        return_token.type = token_types.t_ELSE
+    elif token_text=="FOR":
+        return_token.type = token_types.t_FOR
+    elif token_text=="WHILE":
+        return_token.type = token_types.t_WHILE
+    elif token_text=="SWITCH":
+        return_token.type = token_types.t_SWITCH
+    elif token_text=="CASE":
+        return_token.type = token_types.t_CASE
+    elif token_text=="GLOBAL":
+        return_token.type = token_types.t_GLOBAL
+    elif token_text=="*":
+        return_token.type = token_types.t_MULT_OP
+    elif token_text=="/":
+        return_token.type = token_types.t_DIVIDE_OP
+    elif token_text=="AND":
+        return_token.type = token_types.t_AND
+    elif token_text=="+":
+        return_token.type = token_types.t_ADD_OP
+    elif token_text=="-":
+        return_token.type = token_types.t_SUBTRACT_OP
+    elif token_text=="OR":
+        return_token.type = token_types.t_OR
+    elif token_text==":=":
+        return_token.type = token_types.t_ASSIGN
+    elif token_text=="=":
+        return_token.type = token_types.t_EQUALS
+    elif token_text=="<":
+        return_token.type = token_types.t_LESS_THAN
+    elif token_text=="<=":
+        return_token.type = token_types.t_LESS_THAN_OR_EQUAL
+    elif token_text==">":
+        return_token.type = token_types.t_GREATER_THAN
+    elif token_text==">=":
+        return_token.type = token_types.t_GREATER_THAN_OR_EQUAL
+    elif token_text==":":
+        return_token.type = token_types.t_COLON
+    elif token_text==";":
+        return_token.type = token_types.t_SEMI_COLON
+
+    elif token_text=="(":
+        return_token.type = token_types.t_LEFT_PAREN
+    elif token_text==")":
+        return_token.type = token_types.t_RIGHT_PAREN
+    elif token_text=="[":
+        return_token.type = token_types.t_LEFT_BRACKET
+    elif token_text=="]":
+        return_token.type = token_types.t_RIGHT_BRACKET
+
+    elif token_text.isnumeric():
+        return_token.type = token_types.t_NUMBER
+    elif token_text[0].isalpha():
+        return_token.type = token_types.t_ID
+    return return_token
 
 def getNextToken():
     word = ""
@@ -108,10 +202,13 @@ def isWhitespace(inChar):
         return True
     return False
 
-for i in range(200):
+
+i=0
+while True:
     result = getNextToken()
     if result==None:
         break
-    print(str(i)+": "+result.type+" "+result.value)
+    print(str(i)+": "+str(result.type)+" "+str(result.value))
+    i=i+1
 source_file.close()
 
