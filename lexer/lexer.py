@@ -1,5 +1,11 @@
-from dataclasses import dataclass
-from enum import Enum
+#           Needed for inport of common.py
+##############################################################
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir) 
+from common import common
+##############################################################
 
 one_dig_seperators=[',',';','(',')','[',']','+','-','/','*',':','.']
 two_dig_seperators=[":=","<=","<=","==","!=","//"]
@@ -11,15 +17,7 @@ filename = "../test0.src"
 
 source_file = open(filename, 'r')
 
-token_types = Enum('token_types','t_INVALID, t_PROGRAM t_IS t_VARIABLE t_BEGIN t_END t_DOT t_LINE_COMMENT\
- t_INTEGER t_BOOL t_FLOAT t_STRING t_CHAR i_IF t_THEN t_ELSE t_FOR t_WHILE t_SWITCH t_CASE t_MULT_OP\
- t_DIVIDE_OP t_AND t_ADD_OP t_SUBTRACT_OP t_GLOBAL t_OR t_ASSIGN t_EQUALS t_NOT_EQUAL t_LESS_THAN t_LESS_THAN_OR_EQUAL t_GREATER_THAN\
-  t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET t_TRUE t_FALSE')
 
-@dataclass
-class token:
-    type: token_types
-    value: str
 
 
 # Enum used for types to prevent passing around strings.
@@ -43,94 +41,94 @@ def identify_token(token_text_lower):
 
     # Start with a token of Invalid type and hopefully identify before sending
     # Only certain tokens such as number, and id will need a value
-    return_token = token(token_types.t_INVALID,None);
+    return_token = common.token(common.token_types.t_INVALID,None);
 
     if token_text=="PROGRAM":
-        return_token.type = token_types.t_PROGRAM
+        return_token.type = common.token_types.t_PROGRAM
     elif token_text=="IS":
-        return_token.type = token_types.t_IS
+        return_token.type = common.token_types.t_IS
     elif token_text=="VARIABLE":
-        return_token.type = token_types.t_VARIABLE
+        return_token.type = common.token_types.t_VARIABLE
     elif token_text=="BEGIN":
-        return_token.type = token_types.t_BEGIN
+        return_token.type = common.token_types.t_BEGIN
     elif token_text=="END":
-        return_token.type = token_types.t_END
+        return_token.type = common.token_types.t_END
     elif token_text==".":
-        return_token.type = token_types.t_DOT       
+        return_token.type = common.token_types.t_DOT       
     elif token_text=="//":
-        return_token.type = token_types.t_LINE_COMMENT
+        return_token.type = common.token_types.t_LINE_COMMENT
     elif token_text=="INTEGER":
-        return_token.type = token_types.t_INTEGER
+        return_token.type = common.token_types.t_INTEGER
     elif token_text=="BOOL":
-        return_token.type = token_types.t_BOOL
+        return_token.type = common.token_types.t_BOOL
     elif token_text=="FLOAT":
-        return_token.type = token_types.t_FLOAT
+        return_token.type = common.token_types.t_FLOAT
     elif token_text=="STRING":
-        return_token.type = token_types.t_STRING
+        return_token.type = common.token_types.t_STRING
     elif token_text=="CHAR":
-        return_token.type = token_types.t_CHAR
+        return_token.type = common.token_types.t_CHAR
     elif token_text=="IF":
-        return_token.type = token_types.t_IF
+        return_token.type = common.token_types.t_IF
     elif token_text=="THEN":
-        return_token.type = token_types.t_THEN
+        return_token.type = common.token_types.t_THEN
     elif token_text=="ELSE":
-        return_token.type = token_types.t_ELSE
+        return_token.type = common.token_types.t_ELSE
     elif token_text=="FOR":
-        return_token.type = token_types.t_FOR
+        return_token.type = common.token_types.t_FOR
     elif token_text=="WHILE":
-        return_token.type = token_types.t_WHILE
+        return_token.type = common.token_types.t_WHILE
     elif token_text=="SWITCH":
-        return_token.type = token_types.t_SWITCH
+        return_token.type = common.token_types.t_SWITCH
     elif token_text=="CASE":
-        return_token.type = token_types.t_CASE
+        return_token.type = common.token_types.t_CASE
     elif token_text=="GLOBAL":
-        return_token.type = token_types.t_GLOBAL
+        return_token.type = common.token_types.t_GLOBAL
     elif token_text=="*":
-        return_token.type = token_types.t_MULT_OP
+        return_token.type = common.token_types.t_MULT_OP
     elif token_text=="/":
-        return_token.type = token_types.t_DIVIDE_OP
+        return_token.type = common.token_types.t_DIVIDE_OP
     elif token_text=="AND":
-        return_token.type = token_types.t_AND
+        return_token.type = common.token_types.t_AND
     elif token_text=="+":
-        return_token.type = token_types.t_ADD_OP
+        return_token.type = common.token_types.t_ADD_OP
     elif token_text=="-":
-        return_token.type = token_types.t_SUBTRACT_OP
+        return_token.type = common.token_types.t_SUBTRACT_OP
     elif token_text=="OR":
-        return_token.type = token_types.t_OR
+        return_token.type = common.token_types.t_OR
     elif token_text==":=":
-        return_token.type = token_types.t_ASSIGN
+        return_token.type = common.token_types.t_ASSIGN
     elif token_text=="=":
-        return_token.type = token_types.t_EQUALS
+        return_token.type = common.token_types.t_EQUALS
     elif token_text=="<":
-        return_token.type = token_types.t_LESS_THAN
+        return_token.type = common.token_types.t_LESS_THAN
     elif token_text=="<=":
-        return_token.type = token_types.t_LESS_THAN_OR_EQUAL
+        return_token.type = common.token_types.t_LESS_THAN_OR_EQUAL
     elif token_text==">":
-        return_token.type = token_types.t_GREATER_THAN
+        return_token.type = common.token_types.t_GREATER_THAN
     elif token_text==">=":
-        return_token.type = token_types.t_GREATER_THAN_OR_EQUAL
+        return_token.type = common.token_types.t_GREATER_THAN_OR_EQUAL
     elif token_text==":":
-        return_token.type = token_types.t_COLON
+        return_token.type = common.token_types.t_COLON
     elif token_text==";":
-        return_token.type = token_types.t_SEMI_COLON
+        return_token.type = common.token_types.t_SEMI_COLON
     elif token_text=="(":
-        return_token.type = token_types.t_LEFT_PAREN
+        return_token.type = common.token_types.t_LEFT_PAREN
     elif token_text==")":
-        return_token.type = token_types.t_RIGHT_PAREN
+        return_token.type = common.token_types.t_RIGHT_PAREN
     elif token_text=="[":
-        return_token.type = token_types.t_LEFT_BRACKET
+        return_token.type = common.token_types.t_LEFT_BRACKET
     elif token_text=="]":
-        return_token.type = token_types.t_RIGHT_BRACKET
+        return_token.type = common.token_types.t_RIGHT_BRACKET
     elif token_text=="TRUE":
-        return_token.type = token_types.t_TRUE
+        return_token.type = common.token_types.t_TRUE
     elif token_text=="FALSE":
-        return_token.type = token_types.t_FALSE
+        return_token.type = common.token_types.t_FALSE
 
     elif token_text.isnumeric():
-        return_token.type = token_types.t_NUMBER
+        return_token.type = common.token_types.t_NUMBER
         return_token.value = token_text
     elif token_text[0].isalpha():
-        return_token.type = token_types.t_ID
+        return_token.type = common.token_types.t_ID
         return_token.value = token_text
     return return_token
 
@@ -209,15 +207,15 @@ def isWhitespace(inChar):
     return False
 
 
-i=0
-while True:
-    result = getNextToken()
-    if result==None:
-        break
-    print(str(i)+": "+str(result.type)+" "+str(result.value))
-    if result.type==token_types.t_INVALID:
-      print("Error")
-      exit()
-    i=i+1
-source_file.close()
+# i=0
+# while True:
+#     result = getNextToken()
+#     if result==None:
+#         break
+#     print(str(i)+": "+str(result.type)+" "+str(result.value))
+#     if result.type==common.token_types.t_INVALID:
+#       print("Error")
+#       exit()
+#     i=i+1
+# source_file.close()
 

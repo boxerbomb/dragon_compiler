@@ -1,5 +1,16 @@
 import visualizeTree as vt
 
+
+#           Needed for inport of common.py
+##############################################################
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir) 
+from common import common
+from lexer import lexer
+##############################################################
+
 src_file = open("source.txt",'r')
 
 lookahead="Uninitialized"
@@ -77,7 +88,8 @@ def match(token_text):
 
 def get_token():
   next_token = src_file.readline().strip() 
-  print("Working on: "+next_token)
+  print("ZZZZZZZZZZZZZZZZZZZ")
+  print(lexer.getNextToken())
   return next_token
 
 def program_header(parent_node):
