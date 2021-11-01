@@ -14,7 +14,7 @@ source_file = open(filename, 'r')
 token_types = Enum('token_types','t_INVALID, t_PROGRAM t_IS t_VARIABLE t_BEGIN t_END t_DOT t_LINE_COMMENT\
  t_INTEGER t_BOOL t_FLOAT t_STRING t_CHAR i_IF t_THEN t_ELSE t_FOR t_WHILE t_SWITCH t_CASE t_MULT_OP\
  t_DIVIDE_OP t_AND t_ADD_OP t_SUBTRACT_OP t_GLOBAL t_OR t_ASSIGN t_EQUALS t_NOT_EQUAL t_LESS_THAN t_LESS_THAN_OR_EQUAL t_GREATER_THAN\
-  t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET')
+  t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET t_TRUE t_FALSE')
 
 @dataclass
 class token:
@@ -42,7 +42,8 @@ def identify_token(token_text_lower):
     token_text = token_text_lower.upper()
 
     # Start with a token of Invalid type and hopefully identify before sending
-    return_token = token(token_types.t_INVALID,token_text);
+    # Only certain tokens such as number, and id will need a value
+    return_token = token(token_types.t_INVALID,None);
 
     if token_text=="PROGRAM":
         return_token.type = token_types.t_PROGRAM
@@ -112,7 +113,6 @@ def identify_token(token_text_lower):
         return_token.type = token_types.t_COLON
     elif token_text==";":
         return_token.type = token_types.t_SEMI_COLON
-
     elif token_text=="(":
         return_token.type = token_types.t_LEFT_PAREN
     elif token_text==")":
@@ -121,11 +121,17 @@ def identify_token(token_text_lower):
         return_token.type = token_types.t_LEFT_BRACKET
     elif token_text=="]":
         return_token.type = token_types.t_RIGHT_BRACKET
+    elif token_text=="TRUE":
+        return_token.type = token_types.t_TRUE
+    elif token_text=="FALSE":
+        return_token.type = token_types.t_FALSE
 
     elif token_text.isnumeric():
         return_token.type = token_types.t_NUMBER
+        return_token.value = token_text
     elif token_text[0].isalpha():
         return_token.type = token_types.t_ID
+        return_token.value = token_text
     return return_token
 
 def getNextToken():
@@ -209,6 +215,9 @@ while True:
     if result==None:
         break
     print(str(i)+": "+str(result.type)+" "+str(result.value))
+    if result.type==token_types.t_INVALID:
+      print("Error")
+      exit()
     i=i+1
 source_file.close()
 
