@@ -77,8 +77,12 @@ def identify_token(token_text_lower):
         return_token.type = common.token_types.t_FOR
     elif token_text=="WHILE":
         return_token.type = common.token_types.t_WHILE
+    elif token_text=="PROCEDURE":
+        return_token.type = common.token_types.t_PROCEDURE
     elif token_text=="SWITCH":
         return_token.type = common.token_types.t_SWITCH
+    elif token_text=="RETURN":
+        return_token.type = common.token_types.t_RETURN
     elif token_text=="CASE":
         return_token.type = common.token_types.t_CASE
     elif token_text=="GLOBAL":
@@ -95,6 +99,8 @@ def identify_token(token_text_lower):
         return_token.type = common.token_types.t_SUBTRACT_OP
     elif token_text=="OR":
         return_token.type = common.token_types.t_OR
+    elif token_text=="NOT":
+        return_token.type = common.token_types.t_NOT
     elif token_text==":=":
         return_token.type = common.token_types.t_ASSIGN
     elif token_text=="=":
@@ -130,6 +136,8 @@ def identify_token(token_text_lower):
     elif token_text[0].isalpha():
         return_token.type = common.token_types.t_ID
         return_token.value = token_text
+
+    print("Token Type: "+str(return_token.type)+"   :   "+str(return_token.value))
     return return_token
 
 def getNextToken():

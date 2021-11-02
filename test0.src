@@ -1,40 +1,17 @@
-program LoopFib is
-
-global variable x : integer;
-variable i : integer;
-variable max : integer;
-variable tmp : integer;
-variable out : bool;
-
-procedure Fib : integer(variable val : integer)
-    variable tmp :integer[2]; // change to float
-    variable loopVal : integer;
-    variable ret : integer;
-
+program test_program is
+    variable a : integer;
+    variable tmp : bool;
+    procedure f : integer(variable x : integer)
+        variable b : integer;
+        variable y : integer;
     begin
-
-    tmp[0] := -1;
-    tmp[1] := 1;
-
-    for(loopVal := 0; loopVal <= val)
-        ret := tmp[0] + tmp[1];
-        tmp[0] := tmp[1];
-        tmp[1] := ret;
-        loopVal := loopVal + 1;
-    end for;
-
-    return ret;
-end procedure;
-
-
+        b := 3;
+        y := b;
+    return x + y * 4;
+    end procedure;
+    
 begin
-
-max := getInteger();
-for(i := 0; i < max)
-    x := Fib(i);
-    out := putInteger(x);
-    i := i + 1;
-end for;
-
-i:=10;//Just a comment
-end . program.
+    a := 3;
+    a := 5*4+4-2*5;
+    
+end program .
