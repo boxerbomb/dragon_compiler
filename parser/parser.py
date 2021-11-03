@@ -27,22 +27,16 @@ lookahead=common.token(common.token_types.t_INVALID,None)
 ###############################################################################################
 
 class Node(object):
-    def __init__(self, name):
+    def __init__(self, name, in_type=None):
+        self.type = in_type
         self.name = name
-        self.left = None
-        self.right = None
-        self.info = None
+        self.children = []
+
 
     def add(self, node):
-       #No detection for adding one than two nodes
-        if self.left==None:
-          self.left = node
-        elif self.right == None:
-          self.right = node
-        else:
-          print("Attempt to add " + node.name + " to " + self.name+" when left and right nodes are full")
-          print("Current Left: "+self.left.name+" Current Right: "+self.right.name)
-          exit()
+      self.children.append(node)
+      if len(self.children)>2:
+        print("WARNING: More than 2 nodes added on: "+self.name)
 
     def add_info(self, infoNode):
       self.info = infoNode
@@ -130,7 +124,6 @@ def parameter(parent_node):
 def procedure_header(parent_node):
   new_node = Node("procedure_header")
   temp_node = Node("")
-  print("In procedure header ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZzzz")
   if match(common.token_types.t_PROCEDURE) and id(temp_node) and match(common.token_types.t_COLON) and type_mark(new_node) and match(common.token_types.t_LEFT_PAREN):
     matchStack.pop()
     matchStack.pop()
@@ -154,7 +147,7 @@ def procedure_body(parent_node):
   statement_list(new_node)
   match(common.token_types.t_SEMI_COLON)
 
-  return_statement(new_node)
+  return_statement(parent_node)
   match(common.token_types.t_SEMI_COLON)
     
   if  match(common.token_types.t_END) and match(common.token_types.t_PROCEDURE):
@@ -324,8 +317,8 @@ def procedure_call(parent_node):
 
 
 # Expression is another example of needing a "prime"
-def expression(parent_node):
-  new_node = Node("expression")
+def expression(parent_node, in_type=None):
+  new_node = Node("expression",in_type)
   if match(common.token_types.t_NOT):
     print("This should be fixed")
     exit()
@@ -362,7 +355,18 @@ def assignment_statement(parent_node):
 
 def if_statement(parent_node):
   new_node = Node("if_statement")
+  if (match(common.token_types.t_IF) and match(common.token_types.t_LEFT_PAREN) and expression(new_node,"If Condition") and match(common.token_types.t_RIGHT_PAREN) and match(common.token_types.t_THEN)):
+
+    if statement_list(new_node):   
+      #Optional Else
+      match(common.token_types.t_ELSE)
+      if match(common.token_types.t_END) and match(common.token_types.t_IF):
+        parent_node.add(new_node)
+        return True
+
+  print("Returning false from IF statment")
   return False
+
 
 def loop_statement(parent_node):
   new_node = Node("loop_statment")
@@ -385,7 +389,7 @@ def return_statement(parent_node):
   print("In Fucntion Return_statatemtn")
   new_node = Node("return_statement")
   if match(common.token_types.t_RETURN) and expression(new_node):
-    parent_node.name = "Return Statement Found"
+    parent_node.add(new_node)
     print("The two branch appoach is starting to be an issue.")
     print("Either way it seems like the best approach might be to either a seperate tree for each function")
     print("Or create a very long invisible link between the two. Invsiible links are a real thing in graphviz")

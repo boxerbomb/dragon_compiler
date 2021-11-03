@@ -7,6 +7,12 @@ program test_program is
     begin
         b := 3;
         y := b;
+
+        if (y+3) then
+            // Issues with multiple return statment
+            a := 4;
+        end if;
+
     return x + y * 4;
     end procedure;
     

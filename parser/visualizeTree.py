@@ -25,13 +25,17 @@ class ParseTreeVisualizer(object):
 
         while queue:
             node = queue.pop(0)
-            for child_node in [node.left, node.right]:
+            for child_node in node.children:
                 if child_node != None:
                   s = '  node{} [label="{}"]\n'.format(ncount, child_node.name)
                   self.dot_body.append(s)
                   child_node._num = ncount
                   ncount += 1
-                  s = '  node{} -> node{} [ label="{}" ];\n'.format(node._num, child_node._num,"label text")
+                  if child_node.type == None:
+                    label_text=""
+                  else:
+                    label_text = child_node.type
+                  s = '  node{} -> node{} [ label="{}" ];\n'.format(node._num, child_node._num,label_text)
                   self.dot_body.append(s)
                   queue.append(child_node)
 
