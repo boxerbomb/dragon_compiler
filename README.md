@@ -2,6 +2,11 @@
 A recursive-descent compiler as described in EECS 6083/5183 by Philip A. Wilsey and "The Dragon Book" 1st Edition.
 
 
-Work is currently being done in Python to get a feel for compiler design. Once more of the theory is understood, I hope to switch to ADA to develop the compiler.
+Currently work is being done in Python as I am still figuring out what is needed for a compiler. I plan on switching to C, C++, Ada, or Pascal once I feel ready for a rewrite. The course project description reccomends generating LLVM assembly for the code generation, I might look into that but right now I plan on generating Gameboy assembly code, as it is very similar to Z80 assembly and I love retro-computers.
 
-The goal is to fully understand how a compiler works as well as LLVM code generation, allowing my studies in the Compiler Design class to focus on optimization as well as trying out other methods or lexing/parsing/scanning, and to add some more advanced features and syntax to my compiler such as inline assembly.
+Being able to visualize the Abstract Syntax Tree has been extremely helpful in debugging my progress, I choose to use Graphvis for the visualzation. I believe this is a solid choice as I have separated Graphvis generation code from the parser, hopefully allowing an easy transistion to another programming language. Other than python, no dependencies are required to run the parser, although Graphviz is required to generate the visual representation, and ImageMagick is optional to combine the multiple images(seperated per procedure) into one whole-program image.
+
+
+
+Here is an example of a generated Abstract Syntax Tree:
+![AST_image](https://raw.githubusercontent.com/boxerbomb/dragon_compiler/main/parser/final_tree.png)
