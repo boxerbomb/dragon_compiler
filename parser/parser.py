@@ -17,14 +17,18 @@ from lexer import lexer
 #   t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET t_TRUE t_FALSE')
 
 
+###############################################################################################
+###############################################################################################
+##               
+##                        Global Vars               
+## 
+###############################################################################################
+###############################################################################################
 lookahead=common.token(common.token_types.t_INVALID,None)
+root_nodes = []
+###############################################################################################
+###############################################################################################
 
-###############################################################################################
-###############################################################################################
-##               Currently Tokens are just strings
-##                Change to a token type with more information
-###############################################################################################
-###############################################################################################
 
 class Node(object):
     def __init__(self, name, in_type=None):
@@ -117,23 +121,22 @@ def parameter_list(parent_node):
 def parameter(parent_node):
   new_node = Node("parameter")
   if variable_declaration(new_node):
+    parent_node.add(new_node)
     return True
   return False
 
 def procedure_header(parent_node):
   new_node = Node("procedure_header")
-  temp_node = Node("")
-  if match(common.token_types.t_PROCEDURE) and id(temp_node) and match(common.token_types.t_COLON) and type_mark(new_node) and match(common.token_types.t_LEFT_PAREN):
-    matchStack.pop()
-    matchStack.pop()
-    matchStack.pop()
-    function_name = matchStack.pop()
-    parameter_list(new_node)
-    if match(common.token_types.t_RIGHT_PAREN):
-      parent_node.add(new_node)
-      return True
-    print("Fatal Error: Incomplete without the ')'")
-    exit()
+  if match(common.token_types.t_PROCEDURE) and id_no_pop_no_child(parent_node):
+    procedure_name = matchStack.pop()
+    if match(common.token_types.t_COLON) and type_mark(new_node) and match(common.token_types.t_LEFT_PAREN):
+      parameter_list(new_node)
+      if match(common.token_types.t_RIGHT_PAREN):
+        parent_node.name = procedure_name.value
+        parent_node.add(new_node)
+        return True
+      print("Fatal Error: Incomplete without the ')'")
+      exit()
   return False
 
 def procedure_body(parent_node):
@@ -154,9 +157,13 @@ def procedure_body(parent_node):
     return True
     
 def procedure_declaration(parent_node):
+  global root_nodes
   new_node = Node("procedure_delcaration")
-  if procedure_header(new_node) and procedure_body(new_node):
+
+  new_root_node = Node("New_Procedure_Root")
+  if procedure_header(new_root_node) and procedure_body(new_root_node):
     parent_node.add(new_node)
+    root_nodes.append(new_root_node)
     return True
   return False
 
@@ -482,12 +489,18 @@ def program_body(parent_node):
   return False
 
 
+
+# This is something to consider during a re-write. I have to have two copies of this basic function to get the procedure name
 def id(parent_node):
   new_node = Node("id")
-  print("Attmepting an ID match from "+parent_node.name)
   if match(common.token_types.t_ID):
     new_node.name = new_node.name + " : "+matchStack.pop().value
     parent_node.add(new_node)
+    return True
+  return False
+# Nasty code.
+def id_no_pop_no_child(parent_node):
+  if match(common.token_types.t_ID):
     return True
   return False
 
@@ -504,18 +517,20 @@ def program(parent_node):
 
 def main():
   global lookahead
+  global root_nodes
   lookahead = get_token()
 
-  start_node = Node("root")
+  root_nodes.append(Node("program_root"))
 
   # Kicks off the entire parseing
-  if program(start_node):
+  if program(root_nodes[0]):
     print("Success!!")
     #print("------Printing Preorder------\n")
     #printPreorder(start_node)
 
-    viz = vt.ParseTreeVisualizer()
-    viz.gendot(start_node)
+    for function_root in root_nodes:
+      viz = vt.ParseTreeVisualizer()
+      viz.gendot(function_root)
 
   else:
     print("Error in program")

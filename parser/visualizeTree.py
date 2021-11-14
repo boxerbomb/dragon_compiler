@@ -5,7 +5,7 @@ class ParseTreeVisualizer(object):
     def __init__(self):
         self.ncount = 1
         self.dot_header = [textwrap.dedent("""\
-        digraph astgraph {
+        digraph parsetree {
           node [shape=box, fontsize=12, fontname="Courier", height=.1];
           ranksep=.6;
           edge [arrowsize=.5]
@@ -43,10 +43,10 @@ class ParseTreeVisualizer(object):
         tree = root
         self.bfs(tree)
         self.content = ''.join(self.dot_header + self.dot_body + self.dot_footer) 
-        self.write_file()
+        self.write_file(root.name)
 
-    def write_file(self):
-        with open("tree.dot",'w') as outputFile:
+    def write_file(self,root_name):
+        with open("dot_files/"+root_name+".dot",'w') as outputFile:
             outputFile.write(self.content)
         outputFile.close()
         print("Wrote Dot File to disk")
