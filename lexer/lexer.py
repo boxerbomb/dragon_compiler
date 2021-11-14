@@ -137,7 +137,7 @@ def identify_token(token_text_lower):
         return_token.type = common.token_types.t_ID
         return_token.value = token_text
 
-    print("Token Type: "+str(return_token.type)+"   :   "+str(return_token.value))
+    print("** Token Type: "+str(return_token.type)+"   :   "+str(return_token.value))
     return return_token
 
 def getNextToken():

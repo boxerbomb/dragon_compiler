@@ -69,6 +69,7 @@ def match(token_type):
   global lookahead
   if lookahead.type==token_type:
     matchStack.append(lookahead)
+    print("Matched :"+str(lookahead.type)+" to: "+str(token_type))
     lookahead=get_token()
     return True
   else:
@@ -96,7 +97,7 @@ def variable_declaration(parent_node):
 
 def type_mark(parent_node):
   new_node = Node("type_mark")
-  if match(common.token_types.t_INTEGER) or match(common.token_types.t_FLOAT) or match(common.token_types.t_FLOAT) or match(common.token_types.t_BOOL):
+  if match(common.token_types.t_INTEGER) or match(common.token_types.t_FLOAT) or match(common.token_types.t_FLOAT) or match(common.token_types.t_BOOL) or match(common.token_types.t_STRING):
     new_node.add(Node(matchStack.pop()))
     parent_node.add(new_node)
     return True
@@ -199,7 +200,9 @@ def arith_op(parent_node):
   print("arith op right now")
   if relation(new_node) and arith_op_prime(new_node):
     parent_node.add(new_node)
+    print("Returing true arith_op")
     return True
+  print("returing false from arith_op")
   return False
 
 def arith_op_prime(parent_node):
@@ -225,7 +228,9 @@ def term(parent_node):
   if factor(new_node) and term_prime(new_node):
     print("In here")
     parent_node.add(new_node)
+    print("Returning true for term")
     return True
+  print("returning false for term")
   return False
 
 def term_prime(parent_node):
@@ -241,23 +246,37 @@ def term_prime(parent_node):
 
 def relation(parent_node):
   new_node = Node("relation")
-  if term(new_node):
-    #new_node.name=matchStack.pop()
+  print("In relation")
+  if term(new_node) and relation_prime(new_node):
     parent_node.add(new_node)
     return True
   return False
 
+#  t_DIVIDE_OP t_AND t_ADD_OP t_SUBTRACT_OP t_GLOBAL t_OR t_ASSIGN t_EQUALS t_NOT_EQUAL t_LESS_THAN t_LESS_THAN_OR_EQUAL t_GREATER_THAN\
+#   t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET t_TRUE t_FALSE')
+
+def relation_prime(parent_node):
+  new_node = Node("relation_prime")
+  print("In relation Prime")
+  if (match(common.token_types.t_LESS_THAN) or match(common.token_types.t_LESS_THAN_OR_EQUAL) or match(common.token_types.t_GREATER_THAN) or match(common.token_types.t_GREATER_THAN_OR_EQUAL)):
+    operator = str(matchStack.pop())
+    parent_node.name = operator
+    if factor(new_node) and term_prime(new_node):
+      parent_node.add(new_node)
+      print("Returning true for relation_prime")
+      return True
+  return True
+
 def factor(parent_node):
+  print("In factor from: "+parent_node.name)
   new_node = Node("factor")
 
   if match(common.token_types.t_LEFT_PAREN) and expression(new_node) and match(common.token_types.t_RIGHT_PAREN):
     parent_node.add(new_node)
     return True
-  if procedure_call(new_node):
-    parent_node.add(new_node)
-    return True
   if string(new_node):
     parent_node.add(new_node)
+    print("Hit HEre for string")
     return True
   if match(common.token_types.t_TRUE):
     new_node.name = "True"
@@ -267,16 +286,27 @@ def factor(parent_node):
     new_node.name = "False"
     parent_node.add(new_node)
     return True
-
+  print("BIG MILESTONE HERE XXXXXXXXXXXXXXXXXXx")
   # Optional Minus sign
   match(common.token_types.t_SUBTRACT_OP)
-  if name(new_node):
-    parent_node.add(new_node)
-    return True
+
   if number(new_node):
     parent_node.add(new_node)
     return True
-  
+
+  # This is a little hacky, The issue is if we first attempt a procedure call it consumes the id and then fails on the parentheses
+  # This was, if it finds an ID, it knows it must be one of two things, a procedure call, or an ID
+  # These identifying functions are "stripped" of looking for the ID because we have already found those
+  if match(common.token_types.t_ID):
+    matched_id = matchStack.pop().value
+    if procedure_call_stripped(new_node,matched_id):
+      parent_node.add(new_node)
+      return True
+    if name_stripped(new_node,matched_id):
+      parent_node.add(new_node)
+      return True
+
+  print("Returing flase for factor ")
   return False
 
 
@@ -296,33 +326,55 @@ def number(parent_node):
     return True
   return False
 
-def name(parent_node):
-  new_node = Node("name")
-  if id(new_node):
-    if match(common.token_types.t_LEFT_BRACKET) and expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
-      matchStack.pop()
-      new_node.name = new_node.name + matchStack.pop()
-    parent_node.add(new_node)
+# Take a look at another comment about why this is "stripped"
+# fixing this issue will be my next learning objective
+def name_stripped(parent_node,id_name="no name given"):
+  new_node = Node(id_name)
+  print("IN NAME")
+  if match(common.token_types.t_LEFT_BRACKET) and expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+    matchStack.pop()
+    new_node.add(Node("Brackets for indexing"))
     return True
-  return False
+  parent_node.add(new_node)
+  return True
   
 
-def procedure_call(parent_node):
-  print("Update Procedure Call function")
+# take a look at the comment from when this is called, it is what I call "stripped", I would love to learn a new way to do this, either from one of my books, or class
+def procedure_call_stripped(parent_node,id_name="no name given"):
+  new_node = Node(id_name+"()")
+  print("Attmepting an ID match from "+parent_node.name)
+  if match(common.token_types.t_LEFT_PAREN):
+    # Argument_list is not in the AND chain because it is optional
+    argument_list(new_node)
+    if match(common.token_types.t_RIGHT_PAREN):
+      parent_node.add(new_node)
+      return True
+  return False
+
+
+def argument_list(parent_node):
+  new_node = Node("argument_list")
+  if expression(new_node) and match(common.token_types.t_SEMI_COLON):
+    argument_list(new_node)
+    match(common.token_types.t_SEMI_COLON)
+    parent_node.add(new_node)
+    return True
   return False
 
 
 # Expression is another example of needing a "prime"
 def expression(parent_node, in_type=None):
+  print("Testing expression")
   new_node = Node("expression",in_type)
   if match(common.token_types.t_NOT):
     print("This should be fixed")
     exit()
 
-  print("Line 331")
   if arith_op(new_node) and expression_prime(new_node):
     parent_node.add(new_node)
+    print("returning true for for expression")
     return True
+  print("Returing false for expression")
   return False
 
 def expression_prime(parent_node):
@@ -351,14 +403,16 @@ def assignment_statement(parent_node):
 
 def if_statement(parent_node):
   new_node = Node("if_statement")
-  if (match(common.token_types.t_IF) and match(common.token_types.t_LEFT_PAREN) and expression(new_node,"If Condition") and match(common.token_types.t_RIGHT_PAREN) and match(common.token_types.t_THEN)):
-
-    if statement_list(new_node):   
-      #Optional Else
-      match(common.token_types.t_ELSE)
-      if match(common.token_types.t_END) and match(common.token_types.t_IF):
-        parent_node.add(new_node)
-        return True
+  if match(common.token_types.t_IF) and match(common.token_types.t_LEFT_PAREN) and expression(new_node,"If Condition"):
+    print("HALF WAY INTO IF ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
+    if match(common.token_types.t_RIGHT_PAREN) and match(common.token_types.t_THEN):
+      print("Got this far this far in an IF statment ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
+      if statement_list(new_node):   
+        #Optional Else
+        match(common.token_types.t_ELSE)
+        if match(common.token_types.t_END) and match(common.token_types.t_IF):
+          parent_node.add(new_node)
+          return True
 
   print("Returning false from IF statment")
   return False
@@ -430,6 +484,7 @@ def program_body(parent_node):
 
 def id(parent_node):
   new_node = Node("id")
+  print("Attmepting an ID match from "+parent_node.name)
   if match(common.token_types.t_ID):
     new_node.name = new_node.name + " : "+matchStack.pop().value
     parent_node.add(new_node)
