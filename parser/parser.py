@@ -103,11 +103,9 @@ def type_mark(parent_node):
   return False
 
 def parameter_list(parent_node):
-  global lookahead
   new_node = Node("parameter_list")
 
-  if lookahead.type==common.token_types.t_VARIABLE:
-    parameter(new_node)
+  if parameter(new_node):
     match(common.token_types.t_SEMI_COLON)
     parameter_list(new_node)
     match(common.token_types.t_SEMI_COLON)
@@ -162,11 +160,9 @@ def procedure_declaration(parent_node):
   return False
 
 def declaration_list(parent_node):
-  global lookahead
   new_node = Node("declaration_list")
 
-  if lookahead.type==common.token_types.t_VARIABLE or lookahead.type==common.token_types.t_GLOBAL or lookahead.type==common.token_types.t_PROCEDURE:
-    declaration(new_node)
+  if declaration(new_node):
     match(common.token_types.t_SEMI_COLON)
     declaration_list(new_node)
     parent_node.add(new_node)
@@ -405,11 +401,8 @@ def statement(parent_node):
   return False
 
 def statement_list(parent_node):
-  global lookahead
   new_node = Node("statement_list")
-
-  if lookahead.type==common.token_types.t_ID or lookahead.type==common.token_types.t_FOR or lookahead.type==common.token_types.t_IF or lookahead.type==common.token_types.t_RETURN:
-    statement(new_node)
+  if statement(new_node):
     match(common.token_types.t_SEMI_COLON)
     statement_list(new_node)
     match(common.token_types.t_SEMI_COLON)
@@ -463,7 +456,6 @@ def main():
   # Kicks off the entire parseing
   if program(start_node):
     print("Success!!")
-
     #print("------Printing Preorder------\n")
     #printPreorder(start_node)
 
