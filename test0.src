@@ -9,8 +9,8 @@ program test_program is
         y := b;
 
         if (y+3) then
-            // Issues with multiple return statment
-            a := 4;
+            // Doesn't parse with a return here
+            return 6;
         end if;
 
     return x + y * 4;

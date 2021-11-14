@@ -375,7 +375,7 @@ def loop_statement(parent_node):
   # if match("for") and match("(") and assignment_statement(new_node) and match(";") and expression(new_node):
   #   while more_statement:
   #     more_statement=statement(new_node)
-
+  return False
   statement_list(new_node)
   match(common.token_types.t_SEMI_COLON)
 
@@ -408,7 +408,7 @@ def statement_list(parent_node):
   global lookahead
   new_node = Node("statement_list")
 
-  if lookahead.type==common.token_types.t_ID or lookahead.type==common.token_types.t_FOR or lookahead.type==common.token_types.t_IF:
+  if lookahead.type==common.token_types.t_ID or lookahead.type==common.token_types.t_FOR or lookahead.type==common.token_types.t_IF or lookahead.type==common.token_types.t_RETURN:
     statement(new_node)
     match(common.token_types.t_SEMI_COLON)
     statement_list(new_node)
