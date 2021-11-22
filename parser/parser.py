@@ -92,9 +92,22 @@ def program_header(parent_node):
     #print("No header")
     return False
 
+def bound(parent_node):
+  new_node = Node("bound")
+  if number(new_node):
+    parent_node.add(new_node)
+    return True
+  return False
+
 def variable_declaration(parent_node):
   new_node = Node("Variable_Declaration")
   if match(common.token_types.t_VARIABLE) and id(new_node) and match(common.token_types.t_COLON) and type_mark(new_node):
+    # Optional bound
+    if match(common.token_types.t_LEFT_BRACKET) and bound(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+      parent_node.add(new_node)
+      return True
+
+    # No bound
     parent_node.add(new_node)
     return True
   return False
@@ -397,12 +410,27 @@ def expression_prime(parent_node):
   else:
     return True
     
+def destination(parent_node):
+  new_node = Node("destination")
+  if id(new_node):
+    # Optional Bracket Indexing
+    if match(common.token_types.t_LEFT_BRACKET):
+      if expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+        parent_node.add(new_node)
+        return True
+      print("ERROR IN DESTINATION")
+      exit()
+
+    # No Bracket
+    parent_node.add(new_node)
+    return True
+  return False
 
 def assignment_statement(parent_node):
   new_node = Node("assignment_statement")
   #if (match("a") or match("b")) and match(":=") and match("<number>"):
   print("Trying out expression, this might cause errors")
-  if id(new_node) and match(common.token_types.t_ASSIGN):
+  if destination(new_node) and match(common.token_types.t_ASSIGN):
     if expression(new_node):
       parent_node.add(new_node)
       return True
@@ -416,7 +444,10 @@ def if_statement(parent_node):
       print("Got this far this far in an IF statment ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
       if statement_list(new_node):   
         #Optional Else
-        match(common.token_types.t_ELSE)
+        if match(common.token_types.t_ELSE):
+          # With an else comes more statements
+          statement_list(new_node)
+
         if match(common.token_types.t_END) and match(common.token_types.t_IF):
           parent_node.add(new_node)
           return True
@@ -426,6 +457,10 @@ def if_statement(parent_node):
 
 
 def loop_statement(parent_node):
+  print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
+  print("Fix loop_statement")
+  print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
+  exit()
   new_node = Node("loop_statment")
 
   # more_statement=True
