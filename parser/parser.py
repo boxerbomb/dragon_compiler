@@ -341,7 +341,11 @@ def string(parent_node):
 def number(parent_node):
   new_node = Node("")
   if match(common.token_types.t_NUMBER):
-    new_node.name = matchStack.pop()
+    new_node.name = matchStack.pop().value
+    if match(common.token_types.t_DOT) and match(common.token_types.t_NUMBER):
+      new_node.name = new_node.name+"."+matchStack.pop().value
+      parent_node.add(new_node)
+      return True
     parent_node.add(new_node)
     return True
   return False
