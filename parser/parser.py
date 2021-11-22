@@ -457,24 +457,11 @@ def if_statement(parent_node):
 
 
 def loop_statement(parent_node):
-  print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-  print("Fix loop_statement")
-  print("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
-  exit()
   new_node = Node("loop_statment")
 
-  # more_statement=True
-  # if match("for") and match("(") and assignment_statement(new_node) and match(";") and expression(new_node):
-  #   while more_statement:
-  #     more_statement=statement(new_node)
-  return False
-  statement_list(new_node)
-  match(common.token_types.t_SEMI_COLON)
-
-  if match(common.token_types.t_END) and match(common.token_types.t_FOR):
+  if match(common.token_types.t_FOR) and match(common.token_types.t_LEFT_PAREN) and assignment_statement(new_node) and match(common.token_types.t_SEMI_COLON) and expression(new_node) and match(common.token_types.t_RIGHT_PAREN) and statement_list(new_node) and match(common.token_types.t_END) and match(common.token_types.t_FOR):
     parent_node.add(new_node)
     return True
-    
   return False
 
 def return_statement(parent_node):
