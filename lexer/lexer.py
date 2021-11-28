@@ -8,14 +8,22 @@ from common import common
 ##############################################################
 
 one_dig_seperators=[',',';','(',')','[',']','+','-','/','*',':','.']
-two_dig_seperators=[":=","<=","<=","==","!=","//"]
+two_dig_seperators=[":=","<=","<=","==","!=","//","/*","*/"]
 
 tokens = []
 
 
-filename = "../test0.src"
+filename = ""
 
-source_file = open(filename, 'r')
+source_file = None
+
+
+# Bad hack needed to allow for opening different files
+def openFile(filename):
+    global source_file
+    #filename = "../test0.src"
+
+    source_file = open(filename, 'r')
 
 
 
@@ -105,6 +113,8 @@ def identify_token(token_text_lower):
         return_token.type = common.token_types.t_ASSIGN
     elif token_text=="=":
         return_token.type = common.token_types.t_EQUALS
+    elif token_text=="==":
+        return_token.type = common.token_types.t_DOUBLE_EQUALS
     elif token_text=="<":
         return_token.type = common.token_types.t_LESS_THAN
     elif token_text=="<=":
@@ -138,12 +148,17 @@ def identify_token(token_text_lower):
         return_token.value = token_text
 
     print("** Token Type: "+str(return_token.type)+"   :   "+str(return_token.value))
+    if return_token.type==common.token_types.t_INVALID:
+        print(token_text)
+        print(return_token)
+        exit()
     return return_token
 
 def getNextToken():
     word = ""
     textMode=False
     commentMode=False
+    multiLineCount = 0
     while 1:
         # Read two characters. Peek does not advance the iterator
         cur_char = getNextChar()
@@ -154,7 +169,7 @@ def getNextToken():
             return None
 
         # Add the the current "word", only if special case modes are not active and it is not a comment
-        if textMode==False and commentMode==False and cur_char+next_char!="//":
+        if textMode==False and commentMode==False and cur_char+next_char!="//" and cur_char+next_char!="/*":
 
             # First check if cur_char is a one or two digit pre-defined token
             if cur_char+next_char in two_dig_seperators:
@@ -179,15 +194,33 @@ def getNextToken():
             # Start ignoring all characters for comments
             if cur_char+next_char=="//":
                 commentMode=True
+                temp = getNextChar()
+            if cur_char+next_char=="/*":
+                print("Start Comment",cur_char,next_char)
+                commentMode=True
+                multiLineCount = multiLineCount + 1
+                temp = getNextChar()
             # Comments end at the end of the line, add multi-line comment support later
             if commentMode==True:
-                if cur_char=='\n':
+                if cur_char=='\n' and multiLineCount==0:
                     commentMode=False
+                if cur_char+next_char=="*/":
+                    print("End Comment")
+                    multiLineCount=multiLineCount-1
+                    if multiLineCount==0:
+                        print("Done")
+                        commentMode=False
+                    temp = getNextChar()
 
             if textMode==True:
-                word=word+cur_char
+                if cur_char!='"':
+                    word=word+cur_char
+
                 if cur_char=='"':
                     textMode=False
+                    return_token = common.token(common.token_types.t_INVALID,None);
+                    return_token.type = common.token_types.t_STRING_VALUE
+                    return return_token
 
 
 
@@ -213,6 +246,10 @@ def isWhitespace(inChar):
     if inChar==' ' or inChar=='\t' or inChar=='\n' or inChar=='\v' or inChar=='\f' or inChar=='\r':
         return True
     return False
+
+
+def main():
+    pass
 
 
 # i=0

@@ -77,7 +77,7 @@ def match(token_type):
     lookahead=get_token()
     return True
   else:
-    print("Current Token: ", lookahead.type,"attempting", token_type)
+    #print("Current Token: ", lookahead.type,"attempting", token_type)
     return False
 
 def get_token():
@@ -193,7 +193,7 @@ def declaration_list(parent_node):
 def declaration(parent_node):
   new_node = Node("declaration")
   match(common.token_types.t_GLOBAL)
-  print("In declarion general")
+  #print("In declarion general")
   if variable_declaration(new_node) or procedure_declaration(new_node):
     parent_node.add(new_node)
     return True
@@ -217,12 +217,12 @@ def declaration(parent_node):
 #5 + 2 - 1 + 9
 def arith_op(parent_node):
   new_node = Node("arith_op")
-  print("arith op right now")
+  #print("arith op right now")
   if relation(new_node) and arith_op_prime(new_node):
     parent_node.add(new_node)
-    print("Returing true arith_op")
+    #print("Returing true arith_op")
     return True
-  print("returing false from arith_op")
+  #print("returing false from arith_op")
   return False
 
 def arith_op_prime(parent_node):
@@ -246,11 +246,11 @@ def arith_op_prime(parent_node):
 def term(parent_node):
   new_node = Node("term")
   if factor(new_node) and term_prime(new_node):
-    print("In here")
+    #print("In here")
     parent_node.add(new_node)
-    print("Returning true for term")
+    #print("Returning true for term")
     return True
-  print("returning false for term")
+  #print("returning false for term")
   return False
 
 def term_prime(parent_node):
@@ -266,7 +266,7 @@ def term_prime(parent_node):
 
 def relation(parent_node):
   new_node = Node("relation")
-  print("In relation")
+  #print("In relation")
   if term(new_node) and relation_prime(new_node):
     parent_node.add(new_node)
     return True
@@ -277,26 +277,25 @@ def relation(parent_node):
 
 def relation_prime(parent_node):
   new_node = Node("relation_prime")
-  print("In relation Prime")
-  if (match(common.token_types.t_LESS_THAN) or match(common.token_types.t_LESS_THAN_OR_EQUAL) or match(common.token_types.t_GREATER_THAN) or match(common.token_types.t_GREATER_THAN_OR_EQUAL)):
+  #print("In relation Prime")
+  if (match(common.token_types.t_LESS_THAN) or match(common.token_types.t_LESS_THAN_OR_EQUAL) or match(common.token_types.t_DOUBLE_EQUALS) or match(common.token_types.t_GREATER_THAN) or match(common.token_types.t_GREATER_THAN_OR_EQUAL)):
     operator = str(matchStack.pop())
     parent_node.name = operator
     if factor(new_node) and term_prime(new_node):
       parent_node.add(new_node)
-      print("Returning true for relation_prime")
+      #print("Returning true for relation_prime")
       return True
   return True
 
 def factor(parent_node):
-  print("In factor from: "+parent_node.name)
+  #print("In factor from: "+parent_node.name)
   new_node = Node("factor")
 
   if match(common.token_types.t_LEFT_PAREN) and expression(new_node) and match(common.token_types.t_RIGHT_PAREN):
     parent_node.add(new_node)
     return True
-  if string(new_node):
+  if match(common.token_types.t_STRING_VALUE):
     parent_node.add(new_node)
-    print("Hit HEre for string")
     return True
   if match(common.token_types.t_TRUE):
     new_node.name = "True"
@@ -306,7 +305,7 @@ def factor(parent_node):
     new_node.name = "False"
     parent_node.add(new_node)
     return True
-  print("BIG MILESTONE HERE XXXXXXXXXXXXXXXXXXx")
+  #print("BIG MILESTONE HERE XXXXXXXXXXXXXXXXXXx")
   # Optional Minus sign
   match(common.token_types.t_SUBTRACT_OP)
 
@@ -354,7 +353,7 @@ def number(parent_node):
 # fixing this issue will be my next learning objective
 def name_stripped(parent_node,id_name="no name given"):
   new_node = Node(id_name)
-  print("IN NAME")
+  #print("IN NAME")
   if match(common.token_types.t_LEFT_BRACKET) and expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
     matchStack.pop()
     new_node.add(Node("Brackets for indexing"))
@@ -366,7 +365,7 @@ def name_stripped(parent_node,id_name="no name given"):
 # take a look at the comment from when this is called, it is what I call "stripped", I would love to learn a new way to do this, either from one of my books, or class
 def procedure_call_stripped(parent_node,id_name="no name given"):
   new_node = Node(id_name+"()")
-  print("Attmepting an ID match from "+parent_node.name)
+  #print("Attmepting an ID match from "+parent_node.name)
   if match(common.token_types.t_LEFT_PAREN):
     # Argument_list is not in the AND chain because it is optional
     argument_list(new_node)
@@ -388,7 +387,7 @@ def argument_list(parent_node):
 
 # Expression is another example of needing a "prime"
 def expression(parent_node, in_type=None):
-  print("Testing expression")
+  #print("Testing expression")
   new_node = Node("expression",in_type)
   if match(common.token_types.t_NOT):
     print("This should be fixed")
@@ -396,13 +395,13 @@ def expression(parent_node, in_type=None):
 
   if arith_op(new_node) and expression_prime(new_node):
     parent_node.add(new_node)
-    print("returning true for for expression")
+    #print("returning true for for expression")
     return True
-  print("Returing false for expression")
+  #print("Returing false for expression")
   return False
 
 def expression_prime(parent_node):
-  print("HERE RIGHT NOW")
+  #print("HERE RIGHT NOW")
   new_node = Node("")
   if match(common.token_types.t_AND) and expression(new_node):
     new_node.name = "& (and)"
@@ -433,7 +432,7 @@ def destination(parent_node):
 def assignment_statement(parent_node):
   new_node = Node("assignment_statement")
   #if (match("a") or match("b")) and match(":=") and match("<number>"):
-  print("Trying out expression, this might cause errors")
+  #print("Trying out expression, this might cause errors")
   if destination(new_node) and match(common.token_types.t_ASSIGN):
     if expression(new_node):
       parent_node.add(new_node)
@@ -443,9 +442,8 @@ def assignment_statement(parent_node):
 def if_statement(parent_node):
   new_node = Node("if_statement")
   if match(common.token_types.t_IF) and match(common.token_types.t_LEFT_PAREN) and expression(new_node,"If Condition"):
-    print("HALF WAY INTO IF ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
     if match(common.token_types.t_RIGHT_PAREN) and match(common.token_types.t_THEN):
-      print("Got this far this far in an IF statment ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
+      #print("Got this far this far in an IF statment ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
       if statement_list(new_node):   
         #Optional Else
         if match(common.token_types.t_ELSE):
@@ -456,7 +454,7 @@ def if_statement(parent_node):
           parent_node.add(new_node)
           return True
 
-  print("Returning false from IF statment")
+  #print("Returning false from IF statment")
   return False
 
 
@@ -469,7 +467,7 @@ def loop_statement(parent_node):
   return False
 
 def return_statement(parent_node):
-  print("In Fucntion Return_statatemtn")
+  #print("In Fucntion Return_statatemtn")
   new_node = Node("return_statement")
   if match(common.token_types.t_RETURN) and expression(new_node):
     parent_node.add(new_node)
@@ -482,6 +480,7 @@ def return_statement(parent_node):
 
 def statement(parent_node):
   new_node = Node("statement")
+  print("In beginning of statment")
   if assignment_statement(new_node) or if_statement(new_node) or loop_statement(new_node) or return_statement(new_node):
     parent_node.add(new_node)
     return True
@@ -541,7 +540,25 @@ def program(parent_node):
     return False
 
 
+def runUnitTest(filename):
+  print("FILENAME: ",filename)
+  lexer.openFile(filename)
+  global lookahead
+  global root_nodes
+  lookahead = get_token()
+
+  root_nodes.append(Node("program_root"))
+
+  # Kicks off the entire parseing
+  if program(root_nodes[0]):
+    print("Success!!")
+    return True
+  else:
+    print("Error in program")
+    return False
+
 def main():
+  lexer.openFile("../src_files/test1b.src")
   global lookahead
   global root_nodes
   lookahead = get_token()
@@ -561,4 +578,5 @@ def main():
   else:
     print("Error in program")
 
-main()
+if __name__ == '__main__':
+    main()
