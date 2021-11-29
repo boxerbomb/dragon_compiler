@@ -6,6 +6,11 @@ Currently work is being done in Python as I am still figuring out what is needed
 
 Being able to visualize the Abstract Syntax Tree has been extremely helpful in debugging my progress, I choose to use Graphvis for the visualzation. I believe this is a solid choice as I have separated Graphvis generation code from the parser, hopefully allowing an easy transistion to another programming language. Other than python, no dependencies are required to run the parser, although Graphviz is required to generate the visual representation, and ImageMagick is optional to combine the multiple images(seperated per procedure) into one whole-program image.
 
+To Do:
+Simplify AST to a Parse tree.
+Error Handling
+Intermediate Code Generation
+Register Allocation (Graph Coloring)
 
 
 Here is an example of a generated Abstract Syntax Tree:
