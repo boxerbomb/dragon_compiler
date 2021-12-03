@@ -36,20 +36,11 @@ class Node(object):
         self.name = name
         self.children = []
 
-
     def add(self, node):
       self.children.append(node)
       if len(self.children)>2:
         print("WARNING: More than 2 nodes added on: "+self.name)
 
-    def add_info(self, infoNode):
-      self.info = infoNode
-
-    def get_left(self):
-      return self.left
-
-    def get_right(self):
-      return self.right
 
 
 def printPreorder(root):
@@ -354,12 +345,15 @@ def number(parent_node):
 def name_stripped(parent_node,id_name="no name given"):
   new_node = Node(id_name)
   #print("IN NAME")
-  if match(common.token_types.t_LEFT_BRACKET) and expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
-    matchStack.pop()
-    new_node.add(Node("Brackets for indexing"))
-    return True
+  if match(common.token_types.t_LEFT_BRACKET):
+    index_node = Node("Index") 
+    if expression(index_node) and match(common.token_types.t_RIGHT_BRACKET):
+      index_node.add(new_node)
+      parent_node.add(index_node)
+      return True
   parent_node.add(new_node)
   return True
+
   
 
 # take a look at the comment from when this is called, it is what I call "stripped", I would love to learn a new way to do this, either from one of my books, or class
@@ -440,15 +434,15 @@ def assignment_statement(parent_node):
   return False
 
 def if_statement(parent_node):
-  new_node = Node("if_statement")
+  new_node = Node("if_statement","if_statement")
   if match(common.token_types.t_IF) and match(common.token_types.t_LEFT_PAREN) and expression(new_node,"If Condition"):
     if match(common.token_types.t_RIGHT_PAREN) and match(common.token_types.t_THEN):
       #print("Got this far this far in an IF statment ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZz")
-      if statement_list(new_node):   
+      if statement_list(new_node,"true_statement"):   
         #Optional Else
         if match(common.token_types.t_ELSE):
           # With an else comes more statements
-          statement_list(new_node)
+          statement_list(new_node,"else_statement")
 
         if match(common.token_types.t_END) and match(common.token_types.t_IF):
           parent_node.add(new_node)
@@ -486,8 +480,8 @@ def statement(parent_node):
     return True
   return False
 
-def statement_list(parent_node):
-  new_node = Node("statement_list")
+def statement_list(parent_node,node_type=None):
+  new_node = Node("statement_list",node_type)
   if statement(new_node):
     match(common.token_types.t_SEMI_COLON)
     statement_list(new_node)
@@ -572,6 +566,7 @@ def main():
     #printPreorder(start_node)
 
     for function_root in root_nodes:
+      #print_preorder(root)
       viz = vt.ParseTreeVisualizer()
       viz.gendot(function_root)
 
