@@ -39,7 +39,7 @@ class Node(object):
     def add(self, node):
       self.children.append(node)
       if len(self.children)>2:
-        print("WARNING: More than 2 nodes added on: "+self.name)
+        print("WARNING: More than 2 nodes added on: "+str(self.name))
 
 
 
@@ -166,6 +166,7 @@ def procedure_declaration(parent_node):
 
   new_root_node = Node("New_Procedure_Root")
   if procedure_header(new_root_node) and procedure_body(new_root_node):
+    print("matched procedure_declaration")
     parent_node.add(new_node)
     root_nodes.append(new_root_node)
     return True
@@ -182,11 +183,11 @@ def declaration_list(parent_node):
   return False
 
 def declaration(parent_node):
-  new_node = Node("declaration")
+  #new_node = Node("declaration")
   match(common.token_types.t_GLOBAL)
   #print("In declarion general")
-  if variable_declaration(new_node) or procedure_declaration(new_node):
-    parent_node.add(new_node)
+  if variable_declaration(parent_node) or procedure_declaration(parent_node):
+    #parent_node.add(new_node)
     return True
   return False
 
@@ -207,22 +208,22 @@ def declaration(parent_node):
 # arith_op_prime = ((match("+") or match("-")) and relation and arith_op_prime) or nothing
 #5 + 2 - 1 + 9
 def arith_op(parent_node):
-  new_node = Node("arith_op")
+  #new_node = Node("arith_op")
   #print("arith op right now")
-  if relation(new_node) and arith_op_prime(new_node):
-    parent_node.add(new_node)
+  if relation(parent_node) and arith_op_prime(parent_node):
+    #parent_node.add(new_node)
     #print("Returing true arith_op")
     return True
   #print("returing false from arith_op")
   return False
 
 def arith_op_prime(parent_node):
-  new_node = Node("arith_value")
+  #new_node = Node("arith_value")
   if (match(common.token_types.t_ADD_OP) or match(common.token_types.t_SUBTRACT_OP)):
     operation_name = matchStack.pop()
-    if relation(new_node) and arith_op_prime(new_node):
+    if relation(parent_node) and arith_op_prime(parent_node):
       parent_node.name = operation_name
-      parent_node.add(new_node)
+      #parent_node.add(new_node)
       return True
   return True
 
@@ -235,10 +236,10 @@ def arith_op_prime(parent_node):
 # term_prime = (match("*") or match("/")) and factor() and term_prime
 # term_prime = empty
 def term(parent_node):
-  new_node = Node("term")
-  if factor(new_node) and term_prime(new_node):
+  #new_node = Node("term")
+  if factor(parent_node) and term_prime(parent_node):
     #print("In here")
-    parent_node.add(new_node)
+    #parent_node.add(new_node)
     #print("Returning true for term")
     return True
   #print("returning false for term")
@@ -256,10 +257,10 @@ def term_prime(parent_node):
 
 
 def relation(parent_node):
-  new_node = Node("relation")
+  #new_node = Node("relation")
   #print("In relation")
-  if term(new_node) and relation_prime(new_node):
-    parent_node.add(new_node)
+  if term(parent_node) and relation_prime(parent_node):
+    #parent_node.add(new_node)
     return True
   return False
 
@@ -271,9 +272,9 @@ def relation_prime(parent_node):
   #print("In relation Prime")
   if (match(common.token_types.t_LESS_THAN) or match(common.token_types.t_LESS_THAN_OR_EQUAL) or match(common.token_types.t_DOUBLE_EQUALS) or match(common.token_types.t_GREATER_THAN) or match(common.token_types.t_GREATER_THAN_OR_EQUAL)):
     operator = str(matchStack.pop())
-    parent_node.name = operator
-    if factor(new_node) and term_prime(new_node):
-      parent_node.add(new_node)
+    parent_node.name = operator+"hhh"
+    if factor(parent_node) and term_prime(parent_node):
+      #parent_node.add(new_node)
       #print("Returning true for relation_prime")
       return True
   return True
@@ -282,11 +283,11 @@ def factor(parent_node):
   #print("In factor from: "+parent_node.name)
   new_node = Node("factor")
 
-  if match(common.token_types.t_LEFT_PAREN) and expression(new_node) and match(common.token_types.t_RIGHT_PAREN):
-    parent_node.add(new_node)
+  if match(common.token_types.t_LEFT_PAREN) and expression(parent_node) and match(common.token_types.t_RIGHT_PAREN):
+    #parent_node.add(new_node)
     return True
   if match(common.token_types.t_STRING_VALUE):
-    parent_node.add(new_node)
+    #parent_node.add(new_node)
     return True
   if match(common.token_types.t_TRUE):
     new_node.name = "True"
@@ -300,8 +301,8 @@ def factor(parent_node):
   # Optional Minus sign
   match(common.token_types.t_SUBTRACT_OP)
 
-  if number(new_node):
-    parent_node.add(new_node)
+  if number(parent_node):
+    #parent_node.add(new_node)
     return True
 
   # This is a little hacky, The issue is if we first attempt a procedure call it consumes the id and then fails on the parentheses
@@ -309,11 +310,11 @@ def factor(parent_node):
   # These identifying functions are "stripped" of looking for the ID because we have already found those
   if match(common.token_types.t_ID):
     matched_id = matchStack.pop().value
-    if procedure_call_stripped(new_node,matched_id):
-      parent_node.add(new_node)
+    if procedure_call_stripped(parent_node,matched_id):
+      #parent_node.add(new_node)
       return True
-    if name_stripped(new_node,matched_id):
-      parent_node.add(new_node)
+    if name_stripped(parent_node,matched_id):
+      #parent_node.add(new_node)
       return True
 
   print("Returing flase for factor ")
@@ -473,10 +474,10 @@ def return_statement(parent_node):
 
 
 def statement(parent_node):
-  new_node = Node("statement")
+  #new_node = Node("statement")
   print("In beginning of statment")
-  if assignment_statement(new_node) or if_statement(new_node) or loop_statement(new_node) or return_statement(new_node):
-    parent_node.add(new_node)
+  if assignment_statement(parent_node) or if_statement(parent_node) or loop_statement(parent_node) or return_statement(parent_node):
+    #parent_node.add(new_node)
     return True
   return False
 
