@@ -104,10 +104,10 @@ def variable_declaration(parent_node):
   return False
 
 def type_mark(parent_node):
-  new_node = Node("type_mark")
+  #new_node = Node("type_mark")
   if match(common.token_types.t_INTEGER) or match(common.token_types.t_FLOAT) or match(common.token_types.t_FLOAT) or match(common.token_types.t_BOOL) or match(common.token_types.t_STRING):
-    new_node.add(Node(matchStack.pop()))
-    parent_node.add(new_node)
+    parent_node.add(Node(matchStack.pop().type))
+    #parent_node.add(new_node)
     return True
   return False
 
@@ -220,7 +220,7 @@ def arith_op(parent_node):
 def arith_op_prime(parent_node):
   #new_node = Node("arith_value")
   if (match(common.token_types.t_ADD_OP) or match(common.token_types.t_SUBTRACT_OP)):
-    operation_name = matchStack.pop()
+    operation_name = matchStack.pop().type
     if relation(parent_node) and arith_op_prime(parent_node):
       parent_node.name = operation_name
       #parent_node.add(new_node)
@@ -413,7 +413,7 @@ def destination(parent_node):
   if id(new_node):
     # Optional Bracket Indexing
     if match(common.token_types.t_LEFT_BRACKET):
-      if expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+      if expression(new_node,"index") and match(common.token_types.t_RIGHT_BRACKET):
         parent_node.add(new_node)
         return True
       print("ERROR IN DESTINATION")
@@ -421,6 +421,7 @@ def destination(parent_node):
 
     # No Bracket
     parent_node.add(new_node)
+    new_node.add(Node("0","index"))
     return True
   return False
 
