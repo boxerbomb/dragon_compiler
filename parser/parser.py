@@ -551,6 +551,25 @@ def runUnitTest(filename):
     print("Error in program")
     return False
 
+def solve(root):
+      if not root:
+         return root
+
+      if len(root.children)==0:
+         # Return an end Node
+         return root
+
+      if len(root.children)==1:
+        return solve(root.children[0])
+
+      if len(root.children)>=2:
+        root.children[0] = solve(root.children[0])
+        root.children[1] = solve(root.children[1])
+      if len(root.children)>=3:
+        root.children[2] = solve(root.children[2])
+
+      return root
+
 def main():
   lexer.openFile("../src_files/test1b.src")
   global lookahead
@@ -568,6 +587,7 @@ def main():
     for function_root in root_nodes:
       #print_preorder(root)
       viz = vt.ParseTreeVisualizer()
+      new_root = solve(function_root)
       viz.gendot(function_root)
 
   else:
