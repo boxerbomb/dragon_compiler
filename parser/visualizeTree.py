@@ -31,10 +31,12 @@ class ParseTreeVisualizer(object):
                   self.dot_body.append(s)
                   child_node._num = ncount
                   ncount += 1
+
                   if child_node.type == None:
                     label_text=""
                   else:
                     label_text = child_node.type
+
                   s = '  node{} -> node{} [ label="{}" ];\n'.format(node._num, child_node._num,label_text)
                   self.dot_body.append(s)
                   queue.append(child_node)
