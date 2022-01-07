@@ -15,6 +15,9 @@ PROGRAM grant IS
 		variable tst : bool;
 		begin
 			i := 4.5;
+			i := 4*5+20/(10-8);
+			i := 1+2+3+4+5+6;
+			i := (1+2)+(3+4)+(4+5)+6;
 			tst := putString("passed");
 			return (0);
 		end procedure;
@@ -29,7 +32,7 @@ PROGRAM grant IS
                 variable i : integer;
 		begin
 			for(i := 0; i < zach)
-				ryan[1] := zach + i;
+				ryan[1] := zach[14] + i;
 			end for;
 			return 1;
 		end procedure;
