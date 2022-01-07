@@ -8,13 +8,10 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir) 
 from common import common
-from lexer import lexer
 ##############################################################
 
-# token_types = Enum('token_types','t_INVALID, t_PROGRAM t_IS t_VARIABLE t_BEGIN t_END t_DOT t_LINE_COMMENT\
-#  t_INTEGER t_BOOL t_FLOAT t_STRING t_CHAR i_IF t_THEN t_ELSE t_FOR t_WHILE t_SWITCH t_CASE t_MULT_OP\
-#  t_DIVIDE_OP t_AND t_ADD_OP t_SUBTRACT_OP t_GLOBAL t_OR t_ASSIGN t_EQUALS t_NOT_EQUAL t_LESS_THAN t_LESS_THAN_OR_EQUAL t_GREATER_THAN\
-#   t_GREATER_THAN_OR_EQUAL t_ID t_NUMBER t_COLON t_SEMI_COLON t_LEFT_PAREN t_RIGHT_PAREN t_LEFT_BRACKET t_RIGHT_BRACKET t_TRUE t_FALSE')
+from lexer import lexer
+from code_gen import code_generator
 
 
 ###############################################################################################
@@ -24,7 +21,6 @@ from lexer import lexer
 ## 
 ###############################################################################################
 ###############################################################################################
-lookahead=common.token(common.token_types.t_INVALID,None)
 root_nodes = []
 ###############################################################################################
 ###############################################################################################
@@ -39,23 +35,7 @@ class Node(object):
     def add(self, node):
       self.children.append(node)
       if len(self.children)>2:
-        print("WARNING: More than 2 nodes added on: "+str(self.name))
-
-
-
-def printPreorder(root):
-  root_right_name = "NONE"
-  root_left_name = "NONE"
-  if root:
-    if root.left:
-      root_left_name = root.left.name
-    if root.right:
-      root_right_name = root.right.name
-    print(root.name+" has left node: "+root_left_name+" and right node: "+root_right_name)
-    print()
-
-    printPreorder(root.left)
-    printPreorder(root.right)
+        print("WARNING: More than 2 nodes added on: "+self.name)
 
 
 # Trying to not use as many classes as I am unsure of what language I will use
@@ -63,7 +43,14 @@ matchStack = []
 def match(token_type):
   global lookahead
   if lookahead.type==token_type:
-    matchStack.append(lookahead)
+
+    # Do not add parenthese to the matchstack. This causes issues with finding the correct Divide/Multiply Operator in the Stack
+    if lookahead.type==common.token_types.t_LEFT_PAREN or lookahead.type==common.token_types.t_RIGHT_PAREN:
+      pass
+    else:
+      matchStack.append(lookahead)
+
+
     print("Matched :"+str(lookahead.type)+" to: "+str(token_type))
     lookahead=get_token()
     return True
@@ -83,8 +70,8 @@ def program_header(parent_node):
     #print("No header")
     return False
 
-def bound(parent_node):
-  new_node = Node("bound")
+def bound(parent_node, in_type=None):
+  new_node = Node("bound",in_type)
   if number(new_node):
     parent_node.add(new_node)
     return True
@@ -92,9 +79,9 @@ def bound(parent_node):
 
 def variable_declaration(parent_node):
   new_node = Node("Variable_Declaration")
-  if match(common.token_types.t_VARIABLE) and id(new_node) and match(common.token_types.t_COLON) and type_mark(new_node):
+  if match(common.token_types.t_VARIABLE) and id(new_node,"variable_name") and match(common.token_types.t_COLON) and type_mark(new_node,"type"):
     # Optional bound
-    if match(common.token_types.t_LEFT_BRACKET) and bound(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+    if match(common.token_types.t_LEFT_BRACKET) and bound(new_node,"bound") and match(common.token_types.t_RIGHT_BRACKET):
       parent_node.add(new_node)
       return True
 
@@ -103,11 +90,11 @@ def variable_declaration(parent_node):
     return True
   return False
 
-def type_mark(parent_node):
-  #new_node = Node("type_mark")
+def type_mark(parent_node,in_type=None):
+  new_node = Node("type_mark",in_type)
   if match(common.token_types.t_INTEGER) or match(common.token_types.t_FLOAT) or match(common.token_types.t_FLOAT) or match(common.token_types.t_BOOL) or match(common.token_types.t_STRING):
-    parent_node.add(Node(matchStack.pop().type))
-    #parent_node.add(new_node)
+    new_node.add(Node(matchStack.pop().type))
+    parent_node.add(new_node)
     return True
   return False
 
@@ -132,16 +119,16 @@ def parameter(parent_node):
 def procedure_header(parent_node):
   new_node = Node("procedure_header")
   if match(common.token_types.t_PROCEDURE) and id_no_pop_no_child(parent_node):
-    procedure_name = matchStack.pop()
-    if match(common.token_types.t_COLON) and type_mark(new_node) and match(common.token_types.t_LEFT_PAREN):
+    procedure_name = matchStack.pop().value
+    if match(common.token_types.t_COLON) and type_mark(new_node,"return_type") and match(common.token_types.t_LEFT_PAREN):
       parameter_list(new_node)
       if match(common.token_types.t_RIGHT_PAREN):
-        parent_node.name = procedure_name.value
+        parent_node.name = procedure_name
         parent_node.add(new_node)
-        return True
+        return procedure_name
       print("Fatal Error: Incomplete without the ')'")
       exit()
-  return False
+  return None
 
 def procedure_body(parent_node):
   new_node = Node("procedure_body")
@@ -159,14 +146,20 @@ def procedure_body(parent_node):
   if  match(common.token_types.t_END) and match(common.token_types.t_PROCEDURE):
     parent_node.add(new_node)
     return True
-    
+
+
+# Adds a node to "root_nodes", a lsit that will contain seperate trees.
+# One tree for each function, while the code is seperate, knowing from where they stem, in important for scoping 
 def procedure_declaration(parent_node):
   global root_nodes
-  new_node = Node("procedure_delcaration")
+  new_node = Node("Error, this should be filled in later","procedure_declaration")
 
   new_root_node = Node("New_Procedure_Root")
-  if procedure_header(new_root_node) and procedure_body(new_root_node):
-    print("matched procedure_declaration")
+
+  procedure_name = procedure_header(new_root_node)
+
+  if procedure_name!=None and procedure_body(new_root_node):
+    new_node.name = procedure_name
     parent_node.add(new_node)
     root_nodes.append(new_root_node)
     return True
@@ -183,11 +176,11 @@ def declaration_list(parent_node):
   return False
 
 def declaration(parent_node):
-  #new_node = Node("declaration")
+  new_node = Node("declaration")
   match(common.token_types.t_GLOBAL)
   #print("In declarion general")
-  if variable_declaration(parent_node) or procedure_declaration(parent_node):
-    #parent_node.add(new_node)
+  if variable_declaration(new_node) or procedure_declaration(new_node):
+    parent_node.add(new_node)
     return True
   return False
 
@@ -208,22 +201,22 @@ def declaration(parent_node):
 # arith_op_prime = ((match("+") or match("-")) and relation and arith_op_prime) or nothing
 #5 + 2 - 1 + 9
 def arith_op(parent_node):
-  #new_node = Node("arith_op")
+  new_node = Node("arith_op")
   #print("arith op right now")
-  if relation(parent_node) and arith_op_prime(parent_node):
-    #parent_node.add(new_node)
+  if relation(new_node) and arith_op_prime(new_node):
+    parent_node.add(new_node)
     #print("Returing true arith_op")
     return True
   #print("returing false from arith_op")
   return False
 
 def arith_op_prime(parent_node):
-  #new_node = Node("arith_value")
+  new_node = Node("arith_value")
   if (match(common.token_types.t_ADD_OP) or match(common.token_types.t_SUBTRACT_OP)):
     operation_name = matchStack.pop().type
-    if relation(parent_node) and arith_op_prime(parent_node):
+    if relation(new_node) and arith_op_prime(new_node):
       parent_node.name = operation_name
-      #parent_node.add(new_node)
+      parent_node.add(new_node)
       return True
   return True
 
@@ -236,10 +229,10 @@ def arith_op_prime(parent_node):
 # term_prime = (match("*") or match("/")) and factor() and term_prime
 # term_prime = empty
 def term(parent_node):
-  #new_node = Node("term")
-  if factor(parent_node) and term_prime(parent_node):
+  new_node = Node("term")
+  if factor(new_node) and term_prime(new_node):
     #print("In here")
-    #parent_node.add(new_node)
+    parent_node.add(new_node)
     #print("Returning true for term")
     return True
   #print("returning false for term")
@@ -248,7 +241,12 @@ def term(parent_node):
 def term_prime(parent_node):
   new_node = Node("term_prime")
   if (match(common.token_types.t_MULT_OP) or match(common.token_types.t_DIVIDE_OP)) and factor(new_node) and term_prime(new_node):
-    parent_node.name = matchStack.pop().type
+
+    operation_name = matchStack.pop().type
+
+    # Used to have the issues with the parentheses being on the stack but that was fixed in where the stack is appended to
+
+    parent_node.name = operation_name
     parent_node.add(new_node)
     return True
   return True
@@ -257,10 +255,10 @@ def term_prime(parent_node):
 
 
 def relation(parent_node):
-  #new_node = Node("relation")
+  new_node = Node("relation")
   #print("In relation")
-  if term(parent_node) and relation_prime(parent_node):
-    #parent_node.add(new_node)
+  if term(new_node) and relation_prime(new_node):
+    parent_node.add(new_node)
     return True
   return False
 
@@ -272,9 +270,9 @@ def relation_prime(parent_node):
   #print("In relation Prime")
   if (match(common.token_types.t_LESS_THAN) or match(common.token_types.t_LESS_THAN_OR_EQUAL) or match(common.token_types.t_DOUBLE_EQUALS) or match(common.token_types.t_GREATER_THAN) or match(common.token_types.t_GREATER_THAN_OR_EQUAL)):
     operator = str(matchStack.pop())
-    parent_node.name = operator+"hhh"
-    if factor(parent_node) and term_prime(parent_node):
-      #parent_node.add(new_node)
+    parent_node.name = operator
+    if factor(new_node) and term_prime(new_node):
+      parent_node.add(new_node)
       #print("Returning true for relation_prime")
       return True
   return True
@@ -283,11 +281,11 @@ def factor(parent_node):
   #print("In factor from: "+parent_node.name)
   new_node = Node("factor")
 
-  if match(common.token_types.t_LEFT_PAREN) and expression(parent_node) and match(common.token_types.t_RIGHT_PAREN):
-    #parent_node.add(new_node)
+  if match(common.token_types.t_LEFT_PAREN) and expression(new_node) and match(common.token_types.t_RIGHT_PAREN):
+    parent_node.add(new_node)
     return True
   if match(common.token_types.t_STRING_VALUE):
-    #parent_node.add(new_node)
+    parent_node.add(new_node)
     return True
   if match(common.token_types.t_TRUE):
     new_node.name = "True"
@@ -301,8 +299,8 @@ def factor(parent_node):
   # Optional Minus sign
   match(common.token_types.t_SUBTRACT_OP)
 
-  if number(parent_node):
-    #parent_node.add(new_node)
+  if number(new_node):
+    parent_node.add(new_node)
     return True
 
   # This is a little hacky, The issue is if we first attempt a procedure call it consumes the id and then fails on the parentheses
@@ -310,11 +308,11 @@ def factor(parent_node):
   # These identifying functions are "stripped" of looking for the ID because we have already found those
   if match(common.token_types.t_ID):
     matched_id = matchStack.pop().value
-    if procedure_call_stripped(parent_node,matched_id):
-      #parent_node.add(new_node)
+    if procedure_call_stripped(new_node,matched_id):
+      parent_node.add(new_node)
       return True
-    if name_stripped(parent_node,matched_id):
-      #parent_node.add(new_node)
+    if name_stripped(new_node,matched_id):
+      parent_node.add(new_node)
       return True
 
   print("Returing flase for factor ")
@@ -341,25 +339,46 @@ def number(parent_node):
     return True
   return False
 
+# # Take a look at another comment about why this is "stripped"
+# # fixing this issue will be my next learning objective
+# def name_stripped(parent_node,id_name="no name given"):
+#   new_node = Node(id_name)
+#   #print("IN NAME")
+#   if match(common.token_types.t_LEFT_BRACKET):
+#     index_node = Node("Value") 
+#     if expression(index_node) and match(common.token_types.t_RIGHT_BRACKET):
+#       index_node.add(new_node)
+#       parent_node.add(index_node)
+#       return True
+#   # No Index just the value
+#   parent_node.add(new_node)
+#   return True
+
+
 # Take a look at another comment about why this is "stripped"
 # fixing this issue will be my next learning objective
 def name_stripped(parent_node,id_name="no name given"):
-  new_node = Node(id_name)
+  new_node = Node(id_name,"variable_name")
   #print("IN NAME")
+
+  index_node = Node("Value") 
   if match(common.token_types.t_LEFT_BRACKET):
-    index_node = Node("Index") 
-    if expression(index_node) and match(common.token_types.t_RIGHT_BRACKET):
+    if expression(index_node,"index") and match(common.token_types.t_RIGHT_BRACKET):
       index_node.add(new_node)
       parent_node.add(index_node)
       return True
-  parent_node.add(new_node)
+
+  index_node.add(Node("0","index"))
+  index_node.add(new_node)
+  # No Index just the value
+  parent_node.add(index_node)
   return True
 
   
 
 # take a look at the comment from when this is called, it is what I call "stripped", I would love to learn a new way to do this, either from one of my books, or class
 def procedure_call_stripped(parent_node,id_name="no name given"):
-  new_node = Node(id_name+"()")
+  new_node = Node(id_name+"()","procedure_call")
   #print("Attmepting an ID match from "+parent_node.name)
   if match(common.token_types.t_LEFT_PAREN):
     # Argument_list is not in the AND chain because it is optional
@@ -407,10 +426,28 @@ def expression_prime(parent_node):
     parent_node.add(new_node)
   else:
     return True
-    
+
+  # Old version of Destination that either treats the value as an index number or just an ID
+  # This is being removed. It makes more sense to treat a non-index value as <var_name>[0]
+# def destination(parent_node):
+#   new_node = Node("destination")
+#   if id(new_node,"variable_name"):
+#     # Optional Bracket Indexing
+#     if match(common.token_types.t_LEFT_BRACKET):
+#       if expression(new_node) and match(common.token_types.t_RIGHT_BRACKET):
+#         parent_node.add(new_node)
+#         return True
+#       print("ERROR IN DESTINATION")
+#       exit()
+
+#     # No Bracket
+#     parent_node.add(new_node)
+#     return True
+#   return False
+
 def destination(parent_node):
   new_node = Node("destination")
-  if id(new_node):
+  if id(new_node,"variable_name"):
     # Optional Bracket Indexing
     if match(common.token_types.t_LEFT_BRACKET):
       if expression(new_node,"index") and match(common.token_types.t_RIGHT_BRACKET):
@@ -420,17 +457,17 @@ def destination(parent_node):
       exit()
 
     # No Bracket
-    parent_node.add(new_node)
     new_node.add(Node("0","index"))
+    parent_node.add(new_node)
     return True
   return False
 
 def assignment_statement(parent_node):
-  new_node = Node("assignment_statement")
+  new_node = Node("assignment_statement","assignment_statement")
   #if (match("a") or match("b")) and match(":=") and match("<number>"):
   #print("Trying out expression, this might cause errors")
   if destination(new_node) and match(common.token_types.t_ASSIGN):
-    if expression(new_node):
+    if expression(new_node,"value"):
       parent_node.add(new_node)
       return True
   return False
@@ -464,7 +501,7 @@ def loop_statement(parent_node):
 
 def return_statement(parent_node):
   #print("In Fucntion Return_statatemtn")
-  new_node = Node("return_statement")
+  new_node = Node("return_statement","return_statement")
   if match(common.token_types.t_RETURN) and expression(new_node):
     parent_node.add(new_node)
     print("The two branch appoach is starting to be an issue.")
@@ -475,10 +512,10 @@ def return_statement(parent_node):
 
 
 def statement(parent_node):
-  #new_node = Node("statement")
+  new_node = Node("statement")
   print("In beginning of statment")
-  if assignment_statement(parent_node) or if_statement(parent_node) or loop_statement(parent_node) or return_statement(parent_node):
-    #parent_node.add(new_node)
+  if assignment_statement(new_node) or if_statement(new_node) or loop_statement(new_node) or return_statement(new_node):
+    parent_node.add(new_node)
     return True
   return False
 
@@ -512,10 +549,10 @@ def program_body(parent_node):
 
 
 # This is something to consider during a re-write. I have to have two copies of this basic function to get the procedure name
-def id(parent_node):
-  new_node = Node("id")
+def id(parent_node,in_type=None):
+  new_node = Node("id",in_type)
   if match(common.token_types.t_ID):
-    new_node.name = new_node.name + " : "+matchStack.pop().value
+    new_node.name = matchStack.pop().value
     parent_node.add(new_node)
     return True
   return False
@@ -553,6 +590,28 @@ def runUnitTest(filename):
     print("Error in program")
     return False
 
+def solve(root):
+      if not root:
+         return root
+
+      if len(root.children)==0:
+         # Return an end Node
+         return root
+
+      if len(root.children)==1:
+        return_node = solve(root.children[0])
+        if root.type != None:
+          return_node.type = root.type
+        return return_node
+
+      if len(root.children)>=2:
+        root.children[0] = solve(root.children[0])
+        root.children[1] = solve(root.children[1])
+      if len(root.children)>=3:
+        root.children[2] = solve(root.children[2])
+
+      return root
+
 def main():
   lexer.openFile("../src_files/test1b.src")
   global lookahead
@@ -566,11 +625,15 @@ def main():
     print("Success!!")
     #print("------Printing Preorder------\n")
     #printPreorder(start_node)
-
     for function_root in root_nodes:
-      #print_preorder(root)
       viz = vt.ParseTreeVisualizer()
+      code_gen = code_generator.CodeGeneratorObject()
+
+      solve(function_root)
       viz.gendot(function_root)
+
+      code_gen.genIntCode(function_root)
+
 
   else:
     print("Error in program")
